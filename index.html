@@ -2,9 +2,11 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d47a1">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ラキオの習慣トラッカー</title>
+
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: linear-gradient(135deg, #0d47a1 0%, #1565c0 100%); min-height: 100vh; padding: 0.5rem; }
@@ -295,6 +297,9 @@ function saveHabits() {
 }
 
 render();
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
 </script>
 
 </body>
