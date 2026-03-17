@@ -9,7 +9,9 @@
 
 <style>
 /* ▼ここから追加▼ */
-
+<div class="habit" data-id="exercise" onclick="onHabitClick(this, 'exercise')">
+  運動
+</div>
 button, .habit {
   transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
@@ -32,7 +34,93 @@ button:active, .habit:active {
 .completed {
   opacity: 0.5;
 }
+/* ===== 全体を整える ===== */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: linear-gradient(135deg, #0d47a1, #1976d2);
+  color: #333;
+}
 
+/* ===== 中央カード ===== */
+.container {
+  max-width: 420px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+/* ===== ガラス風カード ===== */
+.card {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+}
+
+/* ===== 日付 ===== */
+.header-date {
+  text-align: center;
+  font-size: 14px;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 20px;
+}
+
+/* ===== 習慣ボタン ===== */
+.habit {
+  background: white;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  cursor: pointer;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ===== ホバー（PC用） ===== */
+.habit:hover {
+  transform: translateY(-2px);
+}
+
+/* ===== 完了状態 ===== */
+.habit.completed {
+  background: #e3f2fd;
+  color: #0d47a1;
+  box-shadow: none;
+}
+
+/* ===== 丸チェック ===== */
+.check {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #1976d2;
+}
+
+.habit.completed .check {
+  background: #1976d2;
+}
+
+/* ===== 下からふわっと ===== */
+.habit {
+  animation: fadeUp 0.4s ease;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 /* ▲ここまで追加▲ */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: linear-gradient(135deg, #0d47a1 0%, #1565c0 100%); min-height: 100vh; padding: 0.5rem; }
@@ -326,6 +414,77 @@ render();
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js');
 }
+// ===== Service Worker登録 =====
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+
+// ===== ここから追加 =====
+
+// アニメーション
+function markDone(el) {
+  el.classList.add("done");
+
+  setTimeout(() => {
+    el.classList.remove("done");
+  }, 250);
+}
+
+// 保存
+function saveHabit(id) {
+  const today = new Date().toDateString();
+  localStorage.setItem(id + "_" + today, "done");
+}
+
+// 判定
+function isDone(id) {
+  const today = new Date().toDateString();
+  return localStorage.getItem(id + "_" + today);
+}
+
+// クリック時
+function onHabitClick(el, id) {
+  markDone(el);
+  saveHabit(id);
+  el.classList.add("completed");
+  flash();
+}
+
+// 演出
+function flash() {
+  document.body.style.background = "#e3f2fd";
+  setTimeout(() => {
+    document.body.style.background = "";
+  }, 200);
+}
+
+// 起動時
+window.onload = () => {
+  document.querySelectorAll(".habit").forEach(el => {
+    const id = el.dataset.id;
+
+    if (isDone(id)) {
+      el.classList.add("completed");
+    }
+  });
+};
+  <div class="container">
+  <div class="card">
+
+    <div class="header-date" id="today"></div>
+
+    <div class="habit" data-id="exercise" onclick="onHabitClick(this, 'exercise')">
+      運動
+      <div class="check"></div>
+    </div>
+
+    <div class="habit" data-id="study" onclick="onHabitClick(this, 'study')">
+      勉強
+      <div class="check"></div>
+    </div>
+
+  </div>
+</div>
 </script>
 
 </body>
