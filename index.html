@@ -23,15 +23,34 @@ body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   background:var(--bg);
   color:var(--text);
+  overflow-x:hidden;
+}
+
+/* ▼ 波アニメ（控えめ） */
+.wave{
+  position:fixed;
+  top:0;
+  left:0;
+  width:200%;
+  height:200%;
+  background:radial-gradient(circle at 30% 30%, rgba(0,91,255,0.08), transparent 60%);
+  animation:waveMove 12s linear infinite;
+  pointer-events:none;
+}
+
+@keyframes waveMove{
+  0%{transform:translate(0,0)}
+  50%{transform:translate(-10%, -5%)}
+  100%{transform:translate(0,0)}
 }
 
 .container{
+  position:relative;
   max-width:560px;
   margin:0 auto;
   padding:20px 16px;
 }
 
-/* ▼ 日付（P3風） */
 .header-date{
   font-size:14px;
   letter-spacing:2px;
@@ -40,16 +59,14 @@ body{
   padding-left:8px;
 }
 
-/* ▼ 斜めライン */
 .diagonal{
   height:2px;
   background:linear-gradient(135deg, black 40%, transparent 40%);
   margin:16px 0;
 }
 
-/* ▼ 進捗 */
 .progress{
-  margin-bottom:16px;
+  margin-bottom:8px;
 }
 
 .progress-num{
@@ -58,11 +75,11 @@ body{
   letter-spacing:6px;
 }
 
-.progress-sub{
+.streak{
   font-size:12px;
+  margin-bottom:16px;
 }
 
-/* ▼ 習慣 */
 .habit{
   display:flex;
   align-items:center;
@@ -101,13 +118,12 @@ body{
   color:var(--accent);
 }
 
-/* ▼ 追加ボタン */
+/* 控えめADD */
 .add-btn{
-  margin-top:16px;
-  padding:12px;
-  border:1px solid #000;
+  margin-top:20px;
+  font-size:12px;
+  opacity:0.6;
   cursor:pointer;
-  text-align:center;
 }
 
 </style>
@@ -115,14 +131,17 @@ body{
 
 <body>
 
+<div class="wave"></div>
+
 <div class="container">
 
   <div class="header-date" id="today"></div>
 
   <div class="progress">
     <div class="progress-num" id="progressNum">00</div>
-    <div class="progress-sub">COMPLETED</div>
   </div>
+
+  <div class="streak" id="streak">STREAK 0</div>
 
   <div class="diagonal"></div>
 
@@ -161,6 +180,8 @@ function scheduleNotification(hour, minute, message) {
 
 let habits = JSON.parse(localStorage.getItem("habits") || "[]");
 let done = {};
+let streak = parseInt(localStorage.getItem("streak") || "0");
+let lastDate = localStorage.getItem("lastDate") || "";
 
 function render(){
   const list = document.getElementById("habitList");
@@ -192,13 +213,33 @@ function render(){
   });
 
   document.getElementById("progressNum").textContent = String(completed).padStart(2,'0');
+
+  checkStreak(completed);
+}
+
+function checkStreak(completed){
+  const today = new Date().toDateString();
+
+  if(completed === habits.length && habits.length > 0){
+    if(lastDate !== today){
+      streak++;
+      lastDate = today;
+    }
+  } else {
+    if(lastDate !== today) streak = 0;
+  }
+
+  localStorage.setItem("streak", streak);
+  localStorage.setItem("lastDate", lastDate);
+
+  document.getElementById("streak").textContent = `STREAK ${streak}`;
 }
 
 function addHabit(){
   const name = prompt("習慣名");
   if(!name) return;
 
-  const time = prompt("時間（例: MORNING）") || "";
+  const time = prompt("時間") || "";
 
   habits.push({name,time});
   localStorage.setItem("habits", JSON.stringify(habits));
