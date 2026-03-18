@@ -3,161 +3,212 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title></title>
 
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0f2027">
-
 <style>
+:root {
+  --bg: #f5f7fb;
+  --card: #ffffff;
+  --accent: #1a73e8;
+  --text: #1f2937;
+  --sub: #6b7280;
+  --border: #e5e7eb;
+}
 
-/* ===== ベース改善（上書き） ===== */
-body {
+* {
   margin: 0;
-  background: linear-gradient(160deg, #0f2027, #203a43, #2c5364);
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
 }
 
-/* 既存を活かしつつ上品化 */
-.container { max-width: 600px; margin: 0 auto; padding: 12px; }
+.container {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 16px;
+}
 
-.header {
-  text-align: center;
-  color: white;
+.card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 16px;
   margin-bottom: 12px;
+  border: 1px solid var(--border);
 }
 
-.header-title { font-size: 16px; opacity: 0.9; }
-.header-date { font-size: 12px; opacity: 0.7; }
-
-/* カードをガラス風に上書き */
-.racio-card, .habits-card {
-  background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(10px);
-  border-radius: 14px;
-  padding: 14px;
-  margin-bottom: 10px;
-  box-shadow: none;
-}
-
-/* ラキオ */
-.racio-image {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin: 0 auto 8px;
-  display: block;
-  border: 1px solid rgba(255,255,255,0.2);
-}
-
-.racio-message {
-  text-align: center;
-  font-size: 13px;
-  color: rgba(255,255,255,0.9);
-  line-height: 1.6;
-}
-
-/* 習慣 */
+/* ▼ 習慣リスト */
 .habit-item {
-  background: rgba(255,255,255,0.04);
-  border-radius: 10px;
-  transition: transform 0.08s ease, opacity 0.2s;
+  display: flex;
+  align-items: center;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  margin-bottom: 8px;
+  cursor: pointer;
 }
 
 .habit-item.done {
-  background: rgba(255,255,255,0.08);
+  background: #f0f6ff;
+  border-color: var(--accent);
 }
 
-.habit-item:active {
-  transform: scale(0.98);
+.habit-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  margin-right: 12px;
 }
 
-/* テキスト調整 */
-.habit-name { color: white; }
-.habit-time { color: rgba(255,255,255,0.6); }
+.habit-item.done .habit-check {
+  background: var(--accent);
+  border-color: var(--accent);
+}
 
-/* ボタン */
-.edit-btn {
-  border: 1px solid rgba(255,255,255,0.4);
-  background: transparent;
+.habit-content {
+  flex: 1;
+}
+
+.habit-name {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.habit-time {
+  font-size: 12px;
+  color: var(--sub);
+  margin-top: 2px;
+}
+
+/* ▼ 進捗 */
+.progress {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.progress-num {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.progress-bar {
+  height: 6px;
+  background: var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  width: 0%;
+}
+
+/* ▼ カレンダー */
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.day {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background: #eef2f7;
+}
+
+.day.done {
+  background: var(--accent);
+}
+
+/* ▼ ボタン */
+.button {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  background: var(--accent);
+  color: white;
+  font-size: 14px;
 }
 
 </style>
 </head>
 
 <body>
-
 <div class="container">
-  <div class="header">
-    <div class="header-title">ラキオの習慣トラッカー</div>
-    <div class="header-date" id="today"></div>
-  </div>
 
-  <!-- ラキオ（元のまま） -->
-  <div class="racio-card">
-    <img id="racioImage" class="racio-image" src="" alt="Racio">
-    <div class="racio-message" id="racioMessage"></div>
-  </div>
-
-  <!-- 習慣 -->
-  <div class="habits-card" id="habitsList"></div>
-
-  <!-- 連続 -->
-  <div class="racio-card">
-    <div class="streak-display" id="streakDisplay">0</div>
-    <div class="streak-label">🦚 連続達成日数</div>
-    <div class="calendar-grid" id="calendar"></div>
-  </div>
-
-  <button class="edit-btn" onclick="openEditModal()">習慣を編集</button>
-</div>
-
-<!-- モーダル -->
-<div class="modal" id="editModal">
-  <div class="modal-content">
-    <div class="modal-title">習慣の編集</div>
-    <div id="editList"></div>
-    <div class="btn-group">
-      <button class="btn btn-primary" onclick="saveHabits()">保存</button>
-      <button class="btn btn-secondary" onclick="closeEditModal()">キャンセル</button>
+  <!-- ▼ 進捗優先表示 -->
+  <div class="card">
+    <div class="progress">
+      <div class="progress-num" id="progressNum">0 / 0</div>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
     </div>
   </div>
+
+  <!-- ▼ 習慣一覧（最優先） -->
+  <div class="card" id="habitList"></div>
+
+  <!-- ▼ カレンダー（補助情報） -->
+  <div class="card">
+    <div class="calendar" id="calendar"></div>
+  </div>
+
+  <button class="button">習慣を編集</button>
+
 </div>
 
 <script>
+const habits = [
+  { name: "水を飲む", time: "朝" },
+  { name: "ストレッチ", time: "夜" }
+];
 
-/* ===== Service Worker ===== */
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
+let done = {};
+
+function render() {
+  const list = document.getElementById("habitList");
+  list.innerHTML = "";
+
+  let completed = 0;
+
+  habits.forEach((h, i) => {
+    const isDone = done[i];
+    if (isDone) completed++;
+
+    const el = document.createElement("div");
+    el.className = "habit-item" + (isDone ? " done" : "");
+    el.onclick = () => {
+      done[i] = !done[i];
+      render();
+    };
+
+    el.innerHTML = `
+      <div class="habit-check"></div>
+      <div class="habit-content">
+        <div class="habit-name">${h.name}</div>
+        <div class="habit-time">${h.time}</div>
+      </div>
+    `;
+
+    list.appendChild(el);
+  });
+
+  // progress
+  document.getElementById("progressNum").textContent = `${completed} / ${habits.length}`;
+  document.getElementById("progressFill").style.width = `${(completed / habits.length) * 100}%`;
 }
 
-/* ===== 通知 ===== */
-if ("Notification" in window) {
-  Notification.requestPermission();
-}
-
-/* ===== ★ここが修正ポイント ===== */
-
-/* ラキオ表示（既存データを使う） */
-function updateRacioMessage(level) {
-  if (!MESSAGES[level]) return;
-
-  const msg = MESSAGES[level][Math.floor(Math.random() * MESSAGES[level].length)];
-  const img = IMAGES[level][Math.floor(Math.random() * IMAGES[level].length)];
-
-  document.getElementById("racioMessage").textContent = msg;
-  document.getElementById("racioImage").src = img;
-}
-
-/* ===== renderの最後に必ず追加 ===== */
-// 例（既存renderの最後に入れる）
-/*
-updateRacioMessage(level);
-*/
-
-/* ↑これが無かったのが今回のバグ原因 */
-
+render();
 </script>
 
 </body>
