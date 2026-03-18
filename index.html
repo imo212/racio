@@ -7,72 +7,71 @@
 <title></title>
 
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0d47a1">
+<meta name="theme-color" content="#0f2027">
 
 <style>
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: linear-gradient(135deg, #0d47a1, #1976d2);
+  background: linear-gradient(160deg, #0f2027, #203a43, #2c5364);
+  color: #fff;
 }
 
+/* レイアウト */
 .container {
   max-width: 420px;
   margin: 40px auto;
-  padding: 20px;
-}
-
-.card {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(12px);
-  border-radius: 20px;
-  padding: 20px;
-}
-
-.header-date {
-  text-align: center;
-  color: white;
-  margin-bottom: 20px;
-}
-
-.habit {
-  background: white;
-  border-radius: 14px;
   padding: 16px;
+}
+
+/* カード */
+.card {
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+/* ラキオ */
+.racio-image {
+  width: 100%;
+  border-radius: 12px;
   margin-bottom: 12px;
+}
+
+.racio-message {
+  font-size: 14px;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+/* 習慣 */
+.habit {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: transform 0.08s;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: transform 0.08s ease, opacity 0.2s;
 }
 
 .habit:active {
-  transform: scale(0.95);
+  transform: scale(0.97);
 }
 
 .habit.completed {
-  background: #e3f2fd;
+  opacity: 0.5;
 }
 
-.check {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid #1976d2;
-}
-
-.habit.completed .check {
-  background: #1976d2;
-}
-
-.done {
-  animation: pop 0.25s ease;
-}
-
-@keyframes pop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); }
+/* 日付 */
+.header-date {
+  font-size: 14px;
+  opacity: 0.7;
+  margin-bottom: 12px;
 }
 </style>
 </head>
@@ -80,61 +79,147 @@ body {
 <body>
 
 <div class="container">
+
+  <div class="header-date" id="today"></div>
+
+  <!-- ラキオ -->
   <div class="card">
-
-    <div class="header-date" id="today"></div>
-
-    <div class="habit" onclick="onHabitClick(this, 'exercise')">
-      運動 💪
-      <div class="check"></div>
-    </div>
-
-    <div class="habit" onclick="onHabitClick(this, 'study')">
-      勉強 📘
-      <div class="check"></div>
-    </div>
-
+    <img id="racioImg" class="racio-image" src="">
+    <div id="racioMessage" class="racio-message"></div>
   </div>
+
+  <!-- 習慣 -->
+  <div class="card" id="habitList"></div>
+
 </div>
 
 <script>
-// Service Worker
+// ===== Service Worker =====
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js');
 }
 
-// 日付
-document.getElementById("today").textContent =
-  new Date().toLocaleDateString();
-
-function markDone(el) {
-  el.classList.add("done");
-  setTimeout(() => el.classList.remove("done"), 250);
+// ===== 通知 =====
+function requestNotificationPermission() {
+  if ("Notification" in window) {
+    Notification.requestPermission();
+  }
 }
 
-function saveHabit(id) {
+function scheduleNotification(hour, minute, message) {
+  const now = new Date();
+  const target = new Date();
+
+  target.setHours(hour);
+  target.setMinutes(minute);
+  target.setSeconds(0);
+
+  if (target < now) target.setDate(target.getDate() + 1);
+
+  const timeout = target - now;
+
+  setTimeout(() => {
+    new Notification(message);
+    scheduleNotification(hour, minute, message);
+  }, timeout);
+}
+
+// ===== データ =====
+const habits = [
+  { id: "exercise", name: "運動" },
+  { id: "study", name: "勉強" },
+  { id: "read", name: "読書" }
+];
+
+const MESSAGES = {
+  low: [
+    "……まだ動いてないね。",
+    "やる気が出ない日もあるよね。"
+  ],
+  mid: [
+    "いいペースだね。",
+    "ちゃんと積み上げてる。"
+  ],
+  high: [
+    "すごいね。ここまで続けてる。",
+    "その調子、支えたいな。"
+  ]
+};
+
+const IMAGES = [
+  "https://via.placeholder.com/400x250?text=Racio1",
+  "https://via.placeholder.com/400x250?text=Racio2"
+];
+
+// ===== 日付 =====
+function setToday() {
+  const d = new Date();
+  document.getElementById("today").textContent =
+    d.toLocaleDateString("ja-JP");
+}
+
+// ===== ラキオ更新 =====
+function updateRacio(level) {
+  const msgList = MESSAGES[level];
+  const msg = msgList[Math.floor(Math.random() * msgList.length)];
+
+  const img = IMAGES[Math.floor(Math.random() * IMAGES.length)];
+
+  document.getElementById("racioMessage").textContent = msg;
+  document.getElementById("racioImg").src = img;
+}
+
+// ===== 保存 =====
+function toggleHabit(id) {
   const today = new Date().toDateString();
-  localStorage.setItem(id + today, "done");
+  const data = JSON.parse(localStorage.getItem("habits") || "{}");
+
+  if (!data[today]) data[today] = {};
+
+  data[today][id] = !data[today][id];
+
+  localStorage.setItem("habits", JSON.stringify(data));
+  render();
 }
 
-function isDone(id) {
+// ===== レンダー =====
+function render() {
+  const list = document.getElementById("habitList");
+  list.innerHTML = "";
+
   const today = new Date().toDateString();
-  return localStorage.getItem(id + today);
-}
+  const data = JSON.parse(localStorage.getItem("habits") || {});
+  const todayData = data[today] || {};
 
-function onHabitClick(el, id) {
-  markDone(el);
-  saveHabit(id);
-  el.classList.add("completed");
-}
+  let doneCount = 0;
 
-window.onload = () => {
-  const ids = ["exercise", "study"];
-  document.querySelectorAll(".habit").forEach((el, i) => {
-    if (isDone(ids[i])) {
-      el.classList.add("completed");
-    }
+  habits.forEach(h => {
+    const done = todayData[h.id];
+    if (done) doneCount++;
+
+    const div = document.createElement("div");
+    div.className = "habit" + (done ? " completed" : "");
+    div.textContent = h.name;
+
+    div.onclick = () => toggleHabit(h.id);
+
+    list.appendChild(div);
   });
+
+  // レベル判定
+  let level = "low";
+  if (doneCount >= 2) level = "mid";
+  if (doneCount === habits.length) level = "high";
+
+  updateRacio(level);
+}
+
+// ===== 初期化 =====
+window.onload = () => {
+  setToday();
+  render();
+  requestNotificationPermission();
+  scheduleNotification(21, 0, "習慣やる時間だよ");
 };
 </script>
 
