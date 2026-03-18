@@ -3,205 +3,122 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title></title>
-
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#005bff">
 
 <style>
-:root{
-  --bg:#ffffff;
-  --text:#000000;
-  --accent:#005bff;
-}
-
-*{box-sizing:border-box}
-
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  overflow-x:hidden;
-}
+:root{ --accent:#005bff; }
+body{ margin:0; font-family:sans-serif; background:#fff; color:#000; }
 
 .wave{
-  position:fixed;
-  top:-50%;
-  left:-50%;
-  width:200%;
-  height:200%;
+  position:fixed; top:-50%; left:-50%; width:200%; height:200%;
   background:
-    radial-gradient(circle at 30% 30%, rgba(0,91,255,0.18), transparent 60%),
+    radial-gradient(circle at 30% 30%, rgba(0,91,255,0.12), transparent 60%),
     radial-gradient(circle at 70% 60%, rgba(0,91,255,0.08), transparent 60%);
   animation:waveMove 8s ease-in-out infinite alternate;
   pointer-events:none;
 }
 @keyframes waveMove{
-  0%{
-    transform:translate(0,0) scale(1);
-  }
-  100%{
-    transform:translate(8%, 6%) scale(1.1);
-  }
-}
-.container{
-  position:relative;
-  max-width:560px;
-  margin:0 auto;
-  padding:20px 16px;
+  0%{transform:translate(0,0) scale(1);}  
+  100%{transform:translate(8%,6%) scale(1.1);} 
 }
 
-.header-date{
-  font-size:14px;
-  letter-spacing:2px;
-  margin-bottom:20px;
-  border-left:4px solid var(--accent);
-  padding-left:8px;
-}
+.container{ max-width:560px; margin:auto; padding:20px; }
+.header-date{ font-size:14px; letter-spacing:2px; border-left:4px solid var(--accent); padding-left:8px; margin-bottom:20px; }
 
-.diagonal{
-  height:2px;
-  background:linear-gradient(135deg, black 40%, transparent 40%);
-  margin:16px 0;
-}
+.character{ text-align:center; margin-bottom:16px; }
+.character img{ width:120px; cursor:pointer; }
+.message{ font-size:14px; margin-top:8px; }
 
-.progress{
-  margin-bottom:8px;
-}
+.progress-num{ font-size:64px; font-weight:900; letter-spacing:6px; }
+.streak{ font-size:12px; margin-bottom:16px; }
 
-.progress-num{
-  font-size:64px;
-  font-weight:900;
-  letter-spacing:6px;
-}
+.habit{ display:flex; padding:14px 0; border-bottom:1px solid #000; cursor:pointer; }
+.habit-left{ width:6px; height:24px; margin-right:10px; background:#000; }
+.habit.done .habit-left{ background:var(--accent); }
+.habit.done{ color:var(--accent); }
 
-.streak{
-  font-size:12px;
-  margin-bottom:16px;
-}
-
-.habit{
-  display:flex;
-  align-items:center;
-  padding:16px 0;
-  border-bottom:1px solid #000;
-  cursor:pointer;
-  position:relative;
-  overflow:hidden;
-}
-
-/* 達成フラッシュ */
-.habit.flash::after{
-  content:"";
-  position:absolute;
-  top:0;
-  left:-100%;
-  width:100%;
-  height:100%;
-  background:linear-gradient(90deg, transparent, rgba(0,91,255,0.4), transparent);
-  animation:flash 0.4s ease;
-}
-
-@keyframes flash{
-  0%{left:-100%}
-  100%{left:100%}
-}
-
-.habit:active{
-  transform:translateX(4px);
-}
-
-.habit-left{
-  width:6px;
-  height:24px;
-  margin-right:12px;
-  background:#000;
-}
-
-.habit.done .habit-left{
-  background:var(--accent);
-}
-
-.habit-content{flex:1}
-
-.habit-name{
-  font-size:16px;
-  font-weight:600;
-}
-
-.habit-time{
-  font-size:11px;
-}
-
-.habit.done .habit-name{
-  color:var(--accent);
-}
-
-.add-btn{
-  margin-top:20px;
-  font-size:12px;
-  opacity:0.6;
-  cursor:pointer;
-}
-
+.add-btn{ margin-top:16px; font-size:12px; opacity:0.6; }
 </style>
 </head>
 
 <body>
-
 <div class="wave"></div>
 
 <div class="container">
+<div class="header-date" id="today"></div>
 
-  <div class="header-date" id="today"></div>
+<div class="character">
+  <img id="charImg" src="char_idle.png">
+  <div class="message" id="message"></div>
+</div>
 
-  <div class="progress">
-    <div class="progress-num" id="progressNum">00</div>
-  </div>
+<div class="progress-num" id="progressNum">00</div>
+<div class="streak" id="streak">00 DAYS</div>
 
-  <div class="streak" id="streak">00 DAYS</div>
-
-  <div class="diagonal"></div>
-
-  <div id="habitList"></div>
-
-  <div class="add-btn" onclick="addHabit()">+ ADD</div>
-
+<div id="habitList"></div>
+<div class="add-btn" onclick="addHabit()">+ ADD</div>
 </div>
 
 <script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
-}
-
-function requestNotificationPermission() {
-  if ("Notification" in window) {
-    Notification.requestPermission();
-  }
-}
-
-function scheduleNotification(hour, minute, message) {
-  const now = new Date();
-  const target = new Date();
-
-  target.setHours(hour);
-  target.setMinutes(minute);
-  target.setSeconds(0);
-
-  if (target < now) target.setDate(target.getDate() + 1);
-
-  setTimeout(() => {
-    new Notification(message);
-    scheduleNotification(hour, minute, message);
-  }, target - now);
-}
-
-let habits = JSON.parse(localStorage.getItem("habits") || "[]");
+let habits = JSON.parse(localStorage.getItem("habits")||"[]");
 let done = {};
-let streak = parseInt(localStorage.getItem("streak") || "0");
-let lastDate = localStorage.getItem("lastDate") || "";
+let streak = parseInt(localStorage.getItem("streak")||"0");
+let lastDate = localStorage.getItem("lastDate")||"";
+
+// ===== セリフデータ =====
+const low = [
+"フム……まずは一歩だね","フン、まぁやらないよりはマシなンじゃない?","まあ君も頑張った方なンじゃない? まあ君なりにね","こんな所で遊んでいて良いのかい?","……で? 残りはどうするンだい?","1つだけか。君らしいね","これで満足してるわけじゃないよね?","へぇ、始めたンだ。ま、続くといいね","最初の一歩ってやつかい? ははっ","まぁ、何もしないよりは評価してやるよ"
+];
+
+const mid = [
+"へぇ、なかなか君は悪くない","ははっ、おめでとうとか言って欲しいのかな?","半分か。悪くないンじゃない?","フム、君にしてはよくやってる方さ","まぁまぁってところだね","中途半端だねぇ","ここまで来れば、あと少しなンだけどね","やればできるンじゃないか","半分達成……まぁ努力はしてるのかな","悪くない。でもまだ足りないね"
+];
+
+const high = [
+"へぇ、凡愚にしては頑張ったンじゃない?","エライエライ。ガンバッタネ","完璧じゃないか","ほう……全部やったンだ。なかなかやるね","素晴らしい","全部達成とはね","ははっ、やればできるンだね","完璧だ。この調子を続けられるといい","全部クリアか","よくやった"
+];
+
+const streakMsg = [
+"なかなかやるじゃないか","成長したものだね","記録更新だ","悪くない","この調子さ","油断するなよ","上出来だ","見直したよ","当然だよね","この調子で行けばいい"
+];
+
+const breakMsg = [
+"つまらないね","君の愚かさを見抜けなかった","やっぱりね","予想通りさ","所詮その程度か","残念だよ","期待してたンだけどね","また最初からかい?","また始めればいい","がっかりだよ"
+];
+
+function getTimeTone(text){
+  const h = new Date().getHours();
+  if(h >= 22 || h < 5){
+    return text + " ……遅い時間だよ。言われなくても分かってるよね?";
+  }
+  return text;
+}
+
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function updateCharacter(rate, completed){
+  const img = document.getElementById("charImg");
+  const msg = document.getElementById("message");
+
+  let text = "";
+
+  if(rate === 1){
+    img.src = "char_happy.png";
+    text = pick(high);
+  }else if(rate >= 0.5){
+    img.src = "char_smile.png";
+    text = pick(mid);
+  }else if(rate > 0){
+    img.src = "char_normal.png";
+    text = pick(low);
+  }else{
+    img.src = "char_idle.png";
+    text = "何もしていないね。始めようか。";
+  }
+
+  msg.textContent = getTimeTone(text);
+}
 
 function render(){
   const list = document.getElementById("habitList");
@@ -209,38 +126,34 @@ function render(){
 
   let completed = 0;
 
-  // 未達成を上に
-  const sorted = habits.map((h,i)=>({h,i})).sort((a,b)=>{
-    return (done[a.i]?1:0)-(done[b.i]?1:0);
-  });
+  const sorted = habits.map((h,i)=>({h,i}))
+    .sort((a,b)=> (done[a.i]?1:0)-(done[b.i]?1:0));
 
   sorted.forEach(({h,i})=>{
     const isDone = done[i];
     if(isDone) completed++;
 
     const el = document.createElement("div");
-    el.className = "habit" + (isDone ? " done" : "");
+    el.className = "habit"+(isDone?" done":"");
 
     el.onclick = ()=>{
       done[i] = !done[i];
-      el.classList.add("flash");
-      setTimeout(()=>el.classList.remove("flash"),400);
       render();
     };
 
     el.innerHTML = `
       <div class="habit-left"></div>
-      <div class="habit-content">
-        <div class="habit-name">${h.name}</div>
-        <div class="habit-time">${h.time}</div>
-      </div>
+      <div>${h.name}</div>
     `;
-
     list.appendChild(el);
   });
 
-  document.getElementById("progressNum").textContent = String(completed).padStart(2,'0');
+  const rate = habits.length ? completed / habits.length : 0;
 
+  document.getElementById("progressNum").textContent =
+    String(completed).padStart(2,'0');
+
+  updateCharacter(rate, completed);
   checkStreak(completed);
 }
 
@@ -250,25 +163,27 @@ function checkStreak(completed){
   if(completed === habits.length && habits.length > 0){
     if(lastDate !== today){
       streak++;
+      alert(streak + "日連続。よくやってる。この調子で行けばいいンじゃない？エライエライ。");
       lastDate = today;
     }
-  } else {
-    if(lastDate !== today) streak = 0;
+  }else{
+    if(lastDate !== today && streak>0){
+      alert(pick(breakMsg));
+      streak = 0;
+    }
   }
 
   localStorage.setItem("streak", streak);
   localStorage.setItem("lastDate", lastDate);
 
-  document.getElementById("streak").textContent = `${String(streak).padStart(2,'0')} DAYS`;
+  document.getElementById("streak").textContent =
+    `${String(streak).padStart(2,'0')} DAYS`;
 }
 
 function addHabit(){
   const name = prompt("習慣名");
   if(!name) return;
-
-  const time = prompt("時間") || "";
-
-  habits.push({name,time});
+  habits.push({name});
   localStorage.setItem("habits", JSON.stringify(habits));
   render();
 }
@@ -280,11 +195,18 @@ function setToday(){
   document.getElementById("today").textContent = `${day} / ${date}`;
 }
 
-window.onload = () => {
+// キャラタップで別セリフ
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  document.getElementById("charImg").onclick = ()=>{
+    const msg = document.getElementById("message");
+    msg.textContent = getTimeTone("……まだここにいるのかい?");
+  };
+});
+
+window.onload = ()=>{
   setToday();
   render();
-  requestNotificationPermission();
-  scheduleNotification(21, 0, "習慣やる時間だよ");
 };
 </script>
 
