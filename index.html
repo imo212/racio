@@ -40,7 +40,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
 .header { text-align: center; color: white; margin-bottom: 1rem; padding: 0.5rem; }
 .header-title { font-size: 18px; font-weight: 600; margin-bottom: 0.25rem; }
 .header-date { font-size: 12px; opacity: 0.9; }
-.racio-card { background: white; border-radius: 12px; padding: 1rem; margin-bottom: 0.75rem; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+.racio-card { background: white; border-radius: 12px; ppadding: 16px;
+  margin-bottom: 12px;; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
 .racio-image { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin: 0 auto 0.5rem; display: block; border: 2px solid #0d47a1; }
 .racio-message { text-align: center; font-size: 13px; color: #333; line-height: 1.5; min-height: 40px; padding: 0 0.5rem; }
 .streak-display { text-align: center; font-size: 36px; font-weight: 600; color: #0d47a1; margin: 0.5rem 0; }
@@ -51,7 +52,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
 .calendar-day.today { border: 2px solid #1976d2; }
 .habits-card { background: white; border-radius: 12px; padding: 0.75rem; margin-bottom: 0.75rem; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
 .habit-item { display: flex; align-items: center; padding: 0.75rem; margin-bottom: 0.5rem; background: #f8f9fa; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
-.habit-item.done { background: #e3f2fd; }
+.habit-item.done { background: #eef4ff;
+  border-color: #4f7cff; }
 .habit-item:active { transform: scale(0.98); }
 .habit-check { width: 26px; height: 26px; border: 2px solid #0d47a1; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0; font-size: 14px; }
 .habit-item.done .habit-check { background: #0d47a1; color: white; }
@@ -77,7 +79,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
 
 <div class="container">
   <div class="header">
-    <div class="header-title">ラキオの習慣トラッカー</div>
+    <div class="header-title"></div>
     <div class="header-date" id="today"></div>
   </div>
 
