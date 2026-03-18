@@ -31,31 +31,38 @@ body{
   padding:20px 16px;
 }
 
-/* 日付 */
+/* ▼ 日付（P3風） */
 .header-date{
-  font-size:12px;
-  letter-spacing:1px;
+  font-size:14px;
+  letter-spacing:2px;
+  margin-bottom:20px;
+  border-left:4px solid var(--accent);
+  padding-left:8px;
+}
+
+/* ▼ 斜めライン */
+.diagonal{
+  height:2px;
+  background:linear-gradient(135deg, black 40%, transparent 40%);
+  margin:16px 0;
+}
+
+/* ▼ 進捗 */
+.progress{
   margin-bottom:16px;
 }
 
-/* 進捗（主役） */
-.progress{
-  margin-bottom:24px;
-  border-top:3px solid var(--text);
-  padding-top:12px;
-}
-
 .progress-num{
-  font-size:56px;
-  font-weight:800;
-  letter-spacing:4px;
+  font-size:64px;
+  font-weight:900;
+  letter-spacing:6px;
 }
 
 .progress-sub{
   font-size:12px;
 }
 
-/* 習慣 */
+/* ▼ 習慣 */
 .habit{
   display:flex;
   align-items:center;
@@ -79,9 +86,7 @@ body{
   background:var(--accent);
 }
 
-.habit-content{
-  flex:1;
-}
+.habit-content{flex:1}
 
 .habit-name{
   font-size:16px;
@@ -90,11 +95,19 @@ body{
 
 .habit-time{
   font-size:11px;
-  margin-top:2px;
 }
 
 .habit.done .habit-name{
   color:var(--accent);
+}
+
+/* ▼ 追加ボタン */
+.add-btn{
+  margin-top:16px;
+  padding:12px;
+  border:1px solid #000;
+  cursor:pointer;
+  text-align:center;
 }
 
 </style>
@@ -111,7 +124,11 @@ body{
     <div class="progress-sub">COMPLETED</div>
   </div>
 
+  <div class="diagonal"></div>
+
   <div id="habitList"></div>
+
+  <div class="add-btn" onclick="addHabit()">+ ADD</div>
 
 </div>
 
@@ -134,23 +151,15 @@ function scheduleNotification(hour, minute, message) {
   target.setMinutes(minute);
   target.setSeconds(0);
 
-  if (target < now) {
-    target.setDate(target.getDate() + 1);
-  }
-
-  const timeout = target - now;
+  if (target < now) target.setDate(target.getDate() + 1);
 
   setTimeout(() => {
     new Notification(message);
     scheduleNotification(hour, minute, message);
-  }, timeout);
+  }, target - now);
 }
 
-const habits = [
-  { name: "水を飲む", time: "MORNING" },
-  { name: "ストレッチ", time: "NIGHT" }
-];
-
+let habits = JSON.parse(localStorage.getItem("habits") || "[]");
 let done = {};
 
 function render(){
@@ -185,9 +194,22 @@ function render(){
   document.getElementById("progressNum").textContent = String(completed).padStart(2,'0');
 }
 
+function addHabit(){
+  const name = prompt("習慣名");
+  if(!name) return;
+
+  const time = prompt("時間（例: MORNING）") || "";
+
+  habits.push({name,time});
+  localStorage.setItem("habits", JSON.stringify(habits));
+  render();
+}
+
 function setToday(){
   const d = new Date();
-  document.getElementById("today").textContent = d.toLocaleDateString();
+  const day = d.toLocaleDateString('en-US',{weekday:'short'}).toUpperCase();
+  const date = d.toLocaleDateString('en-US',{month:'2-digit',day:'2-digit'});
+  document.getElementById("today").textContent = `${day} / ${date}`;
 }
 
 window.onload = () => {
